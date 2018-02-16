@@ -1,4 +1,5 @@
 FROM base/devel
+MAINTAINER tralamazza
 
 ENV XTENSA_TOOLCHAIN xtensa-esp32-elf-linux64-1.22.0-75-gbaf03c2-5.2.0
 
