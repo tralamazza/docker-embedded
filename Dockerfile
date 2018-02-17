@@ -19,7 +19,7 @@ RUN useradd -m --shell=/bin/false build && \
     sudo -u build sh -c 'gpg --keyserver hkp://pgp.mit.edu --recv-keys 1EB2638FF56C0C53' && \
     sudo -u build sh -c 'cd ~ && git clone https://aur.archlinux.org/cower.git && cd cower && makepkg -si --noconfirm' && \
     sudo -u build sh -c 'cd ~ && git clone https://aur.archlinux.org/pacaur.git && cd pacaur && makepkg -si --noconfirm'
-# now we can use `sudo -u build sh -c 'pacaur -S ...'` to intall AUR packages
+# now we can use `sudo -u build sh -c 'pacaur -S ...'` to install AUR packages
 
 # ARM
 RUN pacman -S --noconfirm arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib
