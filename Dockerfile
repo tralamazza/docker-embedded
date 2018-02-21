@@ -1,11 +1,12 @@
 FROM base/devel
-MAINTAINER tralamazza
+LABEL maintainer="tralamazza"
 
 ENV XTENSA_TOOLCHAIN xtensa-esp32-elf-linux64-1.22.0-75-gbaf03c2-5.2.0
 
 # init
 RUN pacman -Suy --noconfirm
 RUN pacman-key --init && \
+    pacman-key --refresh-keys && \
     update-ca-trust && \
     pacman-db-upgrade
 
@@ -39,3 +40,9 @@ RUN sudo -u build sh -c 'gpg --keyserver keys.gnupg.net --recv-keys 702353E0F7E4
 
 # Java
 RUN pacman -S --noconfirm jre9-openjdk
+
+# AVR tools
+RUN pacman -S --noconfirm avrdude
+
+# Segger tools
+RUN sudo -u build sh -c 'pacaur -S --noconfirm jlink-software-and-documentation'
