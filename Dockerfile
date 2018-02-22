@@ -1,17 +1,14 @@
 FROM base/devel
 LABEL maintainer="tralamazza"
 
-ENV XTENSA_TOOLCHAIN xtensa-esp32-elf-linux64-1.22.0-75-gbaf03c2-5.2.0
+ENV XTENSA_TOOLCHAIN xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0
 
-# init
-RUN pacman -Suy --noconfirm
-RUN pacman-key --init && \
-    pacman-key --refresh-keys && \
-    update-ca-trust && \
-    pacman-db-upgrade
-
-# base packages
-RUN pacman -S --noconfirm wget python git zip
+# init + base packages
+RUN rm -rf /etc/pacman.d/gnupg && \
+    pacman-key --init && \
+    pacman-key --populate archlinux && \
+    pacman-key --refresh-keys --keyserver ipv4.pool.sks-keyservers.net && \
+    pacman -Suy --noconfirm wget python git zip
 
 # the yak: aur packages -> pacaur -> cower -> import gpg keys -> makepkg can't root -> create makepkg user
 RUN useradd -m --shell=/bin/false build && \
@@ -22,27 +19,25 @@ RUN useradd -m --shell=/bin/false build && \
     sudo -u build sh -c 'cd ~ && git clone https://aur.archlinux.org/pacaur.git && cd pacaur && makepkg -si --noconfirm'
 # now we can use `sudo -u build sh -c 'pacaur -S ...'` to install AUR packages
 
-# ARM
-RUN pacman -S --noconfirm arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib
+# ARM + Segger tools
+RUN pacman -S --noconfirm arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib && \
+    sudo -u build sh -c 'pacaur -S --noconfirm jlink-software-and-documentation'
 
 # AVR
-RUN pacman -S --noconfirm avr-binutils avr-gcc avr-gdb avr-libc
+RUN pacman -S --noconfirm avr-binutils avr-gcc avr-gdb avr-libc avrdude
 
 # Xtensa (https://esp-idf.readthedocs.io/en/latest/get-started/linux-setup.html)
-RUN sudo -u build sh -c 'pacaur -S --noconfirm gcc-xtensa-esp32-elf-bin'
-RUN sudo -u build sh -c 'gpg --keyserver keys.gnupg.net --recv-keys 702353E0F7E48EDB' && \
-    sudo -u build sh -c 'pacaur -S --noconfirm ncurses5-compat-libs' && \
+RUN sudo -u build sh -c 'gpg --keyserver ipv4.pool.sks-keyservers.net --recv-keys 702353E0F7E48EDB' && \
+    sudo -u build sh -c 'pacaur -S --noconfirm ncurses5-compat-libs gcc-xtensa-esp32-elf-bin' && \
     pacman -S --noconfirm gperf python2-pyserial && \
     mkdir -p xtensa && \
     cd xtensa && \
     wget https://dl.espressif.com/dl/${XTENSA_TOOLCHAIN}.tar.gz && \
-    tar xf ${XTENSA_TOOLCHAIN}.tar.gz
+    tar xf ${XTENSA_TOOLCHAIN}.tar.gz && \
+    rm ${XTENSA_TOOLCHAIN}.tar.gz
 
 # Java
-RUN pacman -S --noconfirm jre9-openjdk
+RUN pacman -S --noconfirm jre9-openjdk  
 
-# AVR tools
-RUN pacman -S --noconfirm avrdude
-
-# Segger tools
-RUN sudo -u build sh -c 'pacaur -S --noconfirm jlink-software-and-documentation'
+# Cache clean
+RUN sudo pacman -Sc
